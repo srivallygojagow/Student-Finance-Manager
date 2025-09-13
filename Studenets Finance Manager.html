@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Finance Manager</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2196F3, #21CBF3);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+            animation: float 20s infinite linear;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .section h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, #2196F3, #21CBF3);
+            border-radius: 2px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #2196F3, #21CBF3);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .expense-item {
+            background: #f8f9fa;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .expense-item:hover {
+            background: #e3f2fd;
+            transform: translateX(5px);
+        }
+
+        .expense-info {
+            flex-grow: 1;
+        }
+
+        .expense-amount {
+            font-weight: bold;
+            color: #d32f2f;
+            font-size: 1.1rem;
+        }
+
+        .expense-category {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .budget-alert {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+        .prediction-card {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .prediction-card h3 {
+            margin-bottom: 10px;
+        }
+
+        .prediction-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .goals-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .goal-item {
+            background: #f0f8f0;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #45a049);
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Student Finance Manager</h1>
+            <p>AI-Powered Financial Management & Predictive Analytics</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Add Expense Section -->
+            <div class="section">
+                <h2>📝 Add Expense</h2>
+                <div class="input-group">
+                    <label for="expenseAmount">Amount ($)</label>
+                    <input type="number" id="expenseAmount" step="0.01" placeholder="Enter amount">
+                </div>
+                <div class="input-group">
+                    <label for="expenseDescription">Description</label>
+                    <input type="text" id="expenseDescription" placeholder="What did you spend on?">
+                </div>
+                <div class="input-group">
+                    <label for="expenseCategory">Category (AI will auto-categorize)</label>
+                    <select id="expenseCategory">
+                        <option value="">Auto-categorize</option>
+                        <option value="Food">Food</option>
+                        <option value="Transportation">Transportation</option>
+                        <option value="Books">Books & Supplies</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Housing">Housing</option>
+                        <option value="Health">Health</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="addExpense()">Add Expense</button>
+            </div>
+
+            <!-- Budget & Goals Section -->
+            <div class="section">
+                <h2>🎯 Budget & Goals</h2>
+                <div class="input-group">
+                    <label for="monthlyBudget">Monthly Budget ($)</label>
+                    <input type="number" id="monthlyBudget" step="0.01" placeholder="Set your monthly budget">
+                </div>
+                <div class="input-group">
+                    <label for="goalName">Savings Goal</label>
+                    <input type="text" id="goalName" placeholder="What are you saving for?">
+                </div>
+                <div class="input-group">
+                    <label for="goalAmount">Goal Amount ($)</label>
+                    <input type="number" id="goalAmount" step="0.01" placeholder="How much do you need?">
+                </div>
+                <button class="btn" onclick="setBudgetAndGoal()">Set Budget & Goal</button>
+                
+                <div id="budgetAlerts"></div>
+                
+                <div class="goals-container">
+                    <div id="goalsList"></div>
+                </div>
+            </div>
+
+            <!-- Recent Expenses -->
+            <div class="section">
+                <h2>💳 Recent Expenses</h2>
+                <div id="expensesList"></div>
+            </div>
+
+            <!-- Predictive Analytics -->
+            <div class="section">
+                <h2>🔮 Predictive Analytics</h2>
+                <div id="predictions">
+                    <div class="prediction-card">
+                        <h3>Predicted Monthly Spending</h3>
+                        <div class="prediction-value" id="predictedSpending">$0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spending Analytics Chart -->
+            <div class="section full-width">
+                <h2>📊 Spending Analytics Dashboard</h2>
+                <div class="chart-container">
+                    <canvas id="spendingChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let expenses = [];
+        let monthlyBudget = 0;
+        let goals = [];
+        let spendingChart = null;
+
+        // AI-powered expense categorization
+        function categorizeExpense(description) {
+            const categories = {
+                'Food': ['food', 'restaurant', 'meal', 'lunch', 'dinner', 'breakfast', 'pizza', 'burger', 'coffee', 'snack', 'grocery', 'market'],
+                'Transportation': ['bus', 'train', 'uber', 'taxi', 'gas', 'parking', 'metro', 'transport', 'fuel', 'car'],
+                'Books': ['book', 'textbook', 'notebook', 'pen', 'pencil', 'supplies', 'stationery', 'paper'],
+                'Entertainment': ['movie', 'game', 'party', 'concert', 'music', 'streaming', 'netflix', 'spotify', 'fun'],
+                'Housing': ['rent', 'utilities', 'electric', 'water', 'internet', 'wifi', 'apartment', 'dorm'],
+                'Health': ['medicine', 'doctor', 'pharmacy', 'health', 'medical', 'hospital', 'clinic']
+            };
+
+            const desc = description.toLowerCase();
+            for (const [category, keywords] of Object.entries(categories)) {
+                if (keywords.some(keyword => desc.includes(keyword))) {
+                    return category;
+                }
+            }
+            return 'Other';
+        }
+
+        // Add expense with AI categorization
+        function addExpense() {
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const description = document.getElementById('expenseDescription').value;
+            let category = document.getElementById('expenseCategory').value;
+
+            if (!amount || !description) {
+                alert('Please fill in all fields!');
+                return;
+            }
+
+            // AI auto-categorization if not manually selected
+            if (!category) {
+                category = categorizeExpense(description);
+            }
+
+            const expense = {
+                id: Date.now(),
+                amount: amount,
+                description: description,
+                category: category,
+                date: new Date().toLocaleDateString()
+            };
+
+            expenses.unshift(expense);
+            
+            // Clear form
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseCategory').value = '';
+
+            updateDisplay();
+            checkBudgetAlerts();
+            updatePredictions();
+        }
+
+        // Set budget and goals
+        function setBudgetAndGoal() {
+            const budget = parseFloat(document.getElementById('monthlyBudget').value);
+            const goalName = document.getElementById('goalName').value;
+            const goalAmount = parseFloat(document.getElementById('goalAmount').value);
+
+            if (budget > 0) {
+                monthlyBudget = budget;
+            }
+
+            if (goalName && goalAmount > 0) {
+                const goal = {
+                    id: Date.now(),
+                    name: goalName,
+                    amount: goalAmount,
+                    saved: 0
+                };
+                goals.push(goal);
+                
+                document.getElementById('goalName').value = '';
+                document.getElementById('goalAmount').value = '';
+            }
+
+            updateDisplay();
+            checkBudgetAlerts();
+        }
+
+        // Update all displays
+        function updateDisplay() {
+            updateExpensesList();
+            updateGoalsList();
+            updateChart();
+        }
+
+        // Update expenses list
+        function updateExpensesList() {
+            const expensesList = document.getElementById('expensesList');
+            if (expenses.length === 0) {
+                expensesList.innerHTML = '<p style="text-align: center; color: #666;">No expenses yet. Add your first expense!</p>';
+                return;
+            }
+
+            expensesList.innerHTML = expenses.slice(0, 10).map(expense => `
+                <div class="expense-item">
+                    <div class="expense-info">
+                        <div><strong>${expense.description}</strong></div>
+                        <div style="color: #666; font-size: 0.9rem;">${expense.date}</div>
+                        <span class="expense-category">${expense.category}</span>
+                    </div>
+                    <div class="expense-amount">-$${expense.amount.toFixed(2)}</div>
+                </div>
+            `).join('');
+        }
+
+        // Update goals list
+        function updateGoalsList() {
+            const goalsList = document.getElementById('goalsList');
+            if (goals.length === 0) {
+                goalsList.innerHTML = '<p style="text-align: center; color: #666;">Set your first savings goal!</p>';
+                return;
+            }
+
+            goalsList.innerHTML = goals.map(goal => {
+                const progress = Math.min((goal.saved / goal.amount) * 100, 100);
+                return `
+                    <div class="goal-item">
+                        <div><strong>${goal.name}</strong></div>
+                        <div>$${goal.saved.toFixed(2)} / $${goal.amount.toFixed(2)}</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%"></div>
+                        </div>
+                        <div style="text-align: center; margin-top: 5px; font-size: 0.9rem;">${progress.toFixed(1)}% Complete</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Check budget alerts
+        function checkBudgetAlerts() {
+            const alertsDiv = document.getElementById('budgetAlerts');
+            if (monthlyBudget === 0) return;
+
+            const monthlySpending = expenses
+                .filter(expense => new Date(expense.date).getMonth() === new Date().getMonth())
+                .reduce((total, expense) => total + expense.amount, 0);
+
+            const percentage = (monthlySpending / monthlyBudget) * 100;
+
+            if (percentage > 90) {
+                alertsDiv.innerHTML = `
+                    <div class="budget-alert">
+                        <strong>⚠ Budget Alert!</strong><br>
+                        You've spent $${monthlySpending.toFixed(2)} of your $${monthlyBudget.toFixed(2)} monthly budget (${percentage.toFixed(1)}%)
+                    </div>
+                `;
+            } else if (percentage > 75) {
+                alertsDiv.innerHTML = `
+                    <div class="budget-alert" style="background: linear-gradient(135deg, #ff9800, #f57c00);">
+                        <strong>⚠ Budget Warning!</strong><br>
+                        You've spent ${percentage.toFixed(1)}% of your monthly budget
+                    </div>
+                `;
+            } else {
+                alertsDiv.innerHTML = '';
+            }
+        }
+
+        // Update predictive analytics
+        function updatePredictions() {
+            if (expenses.length < 3) {
+                document.getElementById('predictedSpending').textContent = 'Need more data';
+                return;
+            }
+
+            // Simple prediction based on daily average and remaining days in month
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            const monthlyExpenses = expenses.filter(expense => {
+                const expenseDate = new Date(expense.date);
+                return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
+            });
+
+            if (monthlyExpenses.length === 0) {
+                document.getElementById('predictedSpending').textContent = '$0';
+                return;
+            }
+
+            const totalSpent = monthlyExpenses.reduce((total, expense) => total + expense.amount, 0);
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const currentDay = new Date().getDate();
+            const dailyAverage = totalSpent / currentDay;
+            const predictedTotal = dailyAverage * daysInMonth;
+
+            document.getElementById('predictedSpending').textContent = $${predictedTotal.toFixed(2)};
+        }
+
+        // Update spending chart
+        function updateChart() {
+            const ctx = document.getElementById('spendingChart').getContext('2d');
+            
+            if (spendingChart) {
+                spendingChart.destroy();
+            }
+
+            const categoryTotals = expenses.reduce((totals, expense) => {
+                totals[expense.category] = (totals[expense.category] || 0) + expense.amount;
+                return totals;
+            }, {});
+
+            const colors = {
+                'Food': '#FF6384',
+                'Transportation': '#36A2EB',
+                'Books': '#FFCE56',
+                'Entertainment': '#4BC0C0',
+                'Housing': '#9966FF',
+                'Health': '#FF9F40',
+                'Other': '#FF6384'
+            };
+
+            spendingChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categoryTotals),
+                    datasets: [{
+                        data: Object.values(categoryTotals),
+                        backgroundColor: Object.keys(categoryTotals).map(category => colors[category] || '#999'),
+                        borderWidth: 3,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDisplay();
+            
+            // Add some sample data for demonstration
+            setTimeout(() => {
+                if (expenses.length === 0) {
+                    // Sample expenses
+                    expenses = [
+                        { id: 1, amount: 12.50, description: 'Coffee and sandwich', category: 'Food', date: new Date().toLocaleDateString() },
+                        { id: 2, amount: 25.00, description: 'Bus pass', category: 'Transportation', date: new Date().toLocaleDateString() },
+                        { id: 3, amount: 45.99, description: 'Statistics textbook', category: 'Books', date: new Date().toLocaleDateString() }
+                    ];
+                    
+                    monthlyBudget = 500;
+                    
+                    goals = [{
+                        id: 1,
+                        name: 'Spring Break Trip',
+                        amount: 800,
+                        saved: 125
+                    }];
+                    
+                    updateDisplay();
+                    updatePredictions();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
